@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swell at Lantern Point</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A real-time surfing game: shader-driven breaking waves, buoyancy physics and competition heats.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Figtree:wght@400;500;600;700&display=swap">
+</head>
+<body>
+<canvas id="scene" aria-label="Surfing game view"></canvas>
+
+<div id="loading" class="loading">
+  <div class="loading-mark">SWELL</div>
+  <div class="loading-text" id="loadingText">Shaping the reef…</div>
+</div>
+
+<section id="menu" class="screen menu" hidden>
+  <div class="menu-panel">
+    <p class="eyebrow">Lantern Point · A-frame reef</p>
+    <h1 class="wordmark">SWELL</h1>
+    <p class="tagline">Read the set. Find the pocket. Two best waves count.</p>
+    <dl class="report" id="report">
+      <div><dt>Swell</dt><dd id="repSwell">5 ft @ 14 s</dd></div>
+      <div><dt>Wind</dt><dd id="repWind">Light offshore</dd></div>
+      <div><dt>Tide</dt><dd id="repTide">Mid, rising</dd></div>
+    </dl>
+    <div class="menu-actions">
+      <button class="btn primary" id="btnHeat" type="button">Paddle out <span>3:00 heat</span></button>
+      <button class="btn" id="btnFree" type="button">Free surf <span>No clock</span></button>
+    </div>
+    <div class="options">
+      <div class="opt">
+        <span class="opt-label" id="lblTime">Session</span>
+        <div class="seg" role="radiogroup" aria-labelledby="lblTime" id="optTime">
+          <button type="button" data-v="golden" role="radio">Golden hour</button>
+          <button type="button" data-v="midday" role="radio">Midday</button>
+          <button type="button" data-v="dusk" role="radio">Dusk</button>
+        </div>
+      </div>
+      <div class="opt">
+        <span class="opt-label" id="lblQuality">Graphics</span>
+        <div class="seg" role="radiogroup" aria-labelledby="lblQuality" id="optQuality">
+          <button type="button" data-v="low" role="radio">Low</button>
+          <button type="button" data-v="medium" role="radio">Medium</button>
+          <button type="button" data-v="high" role="radio">High</button>
+          <button type="button" data-v="ultra" role="radio">Ultra</button>
+        </div>
+      </div>
+      <div class="opt">
+        <span class="opt-label" id="lblSound">Sound</span>
+        <div class="seg" role="radiogroup" aria-labelledby="lblSound" id="optSound">
+          <button type="button" data-v="on" role="radio">On</button>
+          <button type="button" data-v="off" role="radio">Off</button>
+        </div>
+      </div>
+    </div>
+    <p class="best" id="bestLine">No heats surfed yet</p>
+  </div>
+  <aside class="controls-card" aria-label="Controls">
+    <h2>How to surf</h2>
+    <ol class="howto">
+      <li><b>Wait</b> for a set. The swell lines show up behind you.</li>
+      <li><b>Paddle</b> as the wave lifts you: hold <kbd>W</kbd>.</li>
+      <li><b>Pop up</b> when it says so: <kbd>Space</kbd>.</li>
+      <li><b>Ride the face</b> ahead of the whitewater. Turn hard off the top and bottom to score.</li>
+    </ol>
+    <table class="keys">
+      <tbody>
+        <tr><th><kbd>A</kbd><kbd>D</kbd></th><td>Carve left / right · spin in the air</td></tr>
+        <tr><th><kbd>W</kbd></th><td>Paddle · pump for speed</td></tr>
+        <tr><th><kbd>S</kbd></th><td>Stall / tighter turns, wait for the barrel</td></tr>
+        <tr><th><kbd>Space</kbd></th><td>Pop up · ollie off the lip</td></tr>
+        <tr><th><kbd>Shift</kbd></th><td>Grab the rail in the air</td></tr>
+        <tr><th><kbd>C</kbd></th><td>Cycle camera</td></tr>
+        <tr><th><kbd>Esc</kbd></th><td>Pause</td></tr>
+      </tbody>
+    </table>
+    <p class="pad-note">Gamepad works too: left stick, A to pop, triggers to pump and stall.</p>
+  </aside>
+</section>
+
+<section id="hud" class="hud" hidden>
+  <div class="bar">
+    <div class="bar-brand">SWELL</div>
+    <div class="bar-clock"><span class="bar-k">Heat</span><span id="hudClock" class="num">3:00</span></div>
+    <div class="bar-waves" id="hudWaves" aria-label="Wave scores"></div>
+    <div class="bar-total"><span class="bar-k">Total</span><span id="hudTotal" class="num">0.00</span></div>
+  </div>
+  <div class="prompt" id="hudPrompt" aria-live="polite"></div>
+  <div class="feed" id="hudFeed"></div>
+  <div class="combo" id="hudCombo" hidden>
+    <div class="combo-row"><span class="combo-pts num" id="comboPts">0</span><span class="combo-mult num" id="comboMult">×1</span></div>
+    <div class="combo-bar"><i id="comboBar"></i></div>
+  </div>
+  <div class="ride-live" id="hudRide" hidden><span class="bar-k">Ride</span><span class="num" id="rideScore">0.00</span></div>
+  <div class="gauges">
+    <div class="speed"><span class="num" id="hudSpeed">0</span><small>km/h</small></div>
+    <div class="pocket" id="hudPocket"></div>
+  </div>
+</section>
+
+<div id="card" class="card" hidden>
+  <p class="card-reason" id="cardReason">Kicked out clean</p>
+  <div class="card-score num" id="cardScore">0.00</div>
+  <p class="card-points" id="cardPoints"></p>
+  <ul class="card-tricks" id="cardTricks"></ul>
+</div>
+
+<section id="pause" class="screen pause" hidden>
+  <div class="pause-panel">
+    <h2>Paused</h2>
+    <button class="btn primary" id="btnResume" type="button">Back in the water</button>
+    <button class="btn" id="btnQuit" type="button">End session</button>
+  </div>
+</section>
+
+<section id="results" class="screen results" hidden>
+  <div class="results-panel">
+    <p class="eyebrow" id="resEyebrow">Heat complete</p>
+    <div class="res-total num" id="resTotal">0.00</div>
+    <p class="res-sub" id="resSub">Best two waves</p>
+    <ol class="res-waves" id="resWaves"></ol>
+    <p class="res-best" id="resBest"></p>
+    <div class="menu-actions">
+      <button class="btn primary" id="btnAgain" type="button">Surf another heat</button>
+      <button class="btn" id="btnMenu" type="button">Back to the beach</button>
+    </div>
+  </div>
+</section>
+
+<div id="touch" class="touch" hidden>
+  <div class="touch-left">
+    <button type="button" data-touch="left" aria-label="Carve left">◀</button>
+    <button type="button" data-touch="right" aria-label="Carve right">▶</button>
+  </div>
+  <div class="touch-right">
+    <button type="button" data-touch="brake" aria-label="Stall">Stall</button>
+    <button type="button" data-touch="pump" aria-label="Paddle or pump">Paddle</button>
+    <button type="button" data-touch="pop" class="pop" aria-label="Pop up or ollie">Pop</button>
+  </div>
+</div>
+
+<div id="fade" class="fade"></div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

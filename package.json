@@ -1,0 +1,21 @@
+{
+  "name": "watergames-swell",
+  "private": true,
+  "version": "1.0.0",
+  "description": "SWELL - a real-time surfing game with shader-driven breaking waves and buoyancy physics.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:single": "vite build --mode single",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "vite": "7.3.5",
+    "vite-plugin-singlefile": "2.3.4"
+  }
+}
