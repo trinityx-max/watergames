@@ -205,11 +205,13 @@ void main() {
   vec3 col = mix(body, refl, F);
   col += min(sun * spec, vec3(14.0)) * sunVis * (1.0 - foamMask) * (1.0 - tube * 0.85);
 
-  float foamShade = 0.72 + 0.28 * smoothstep(0.2, 0.9, fpat);
+  // Thin foam lets the water colour through; thick foam is bright and bumpy.
+  float foamShade = 0.62 + 0.38 * smoothstep(0.25, 1.0, fpat + foam * 0.2);
   vec3 foamCol = vec3(0.9, 0.94, 0.97) * foamShade * (uAmbient * 0.95 + sun * 0.5 * clamp(dot(N, uSunDir) * 0.6 + 0.4, 0.0, 1.0));
   foamCol += uScatter * sun * 0.25 * thin;
   foamCol *= 1.0 - 0.45 * tube;
-  col = mix(col, foamCol, foamMask);
+  foamCol = mix(foamCol, foamCol * vec3(0.78, 0.9, 0.95), (1.0 - foamShade) * 1.6);
+  col = mix(col, foamCol, foamMask * (0.82 + 0.18 * smoothstep(0.4, 0.9, fcell)));
 
   vec3 fogDir = normalize(vec3(-V.x, 0.012, -V.z));
   float fog = 1.0 - exp(-dist * 0.00021);

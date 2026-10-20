@@ -277,7 +277,8 @@ kbd {
   .prompt { top: calc(var(--gt) + 130px); }
 }
 @media (max-width: 480px) {
-  .report { grid-template-columns: 1fr; }
+  .report dd { font-size: 1.02rem; }
+  .report div { padding: 8px 9px; }
   .btn { min-width: 0; flex: 1; }
   .bar > div { padding: 5px 9px; }
   .bar .num { font-size: 1.35rem; }

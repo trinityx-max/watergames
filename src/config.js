@@ -55,13 +55,13 @@ export const TIMES = {
     sunAzimuth: 200, // measured from +z toward +x; 180 = straight out to sea
     sunColor: [1.0, 0.72, 0.42],
     sunIntensity: 3.2,
-    zenith: [0.13, 0.27, 0.55],
-    horizon: [0.86, 0.52, 0.34],
+    zenith: [0.07, 0.17, 0.42],
+    horizon: [0.95, 0.56, 0.32],
     deep: [0.004, 0.035, 0.06],
     scatter: [0.02, 0.42, 0.38],
     ambient: [0.36, 0.42, 0.52],
-    cloudColor: [1.0, 0.8, 0.66],
-    exposure: 0.72,
+    cloudColor: [1.0, 0.74, 0.55],
+    exposure: 0.74,
   },
   midday: {
     label: 'Midday',

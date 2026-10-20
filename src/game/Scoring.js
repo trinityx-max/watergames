@@ -64,7 +64,7 @@ export class RideScore {
     if (riding && board.contact && board.speed > 9) this.speedPoints += (board.speed - 9) * 16 * dt
 
     // Barrel time.
-    const inTube = riding && board.contact && S.curl > 0.5 && S.u > 0.2 && S.u < 3.4 && S.s < 2.5
+    const inTube = riding && board.depth > -0.35 && S.curl > 0.5 && S.u > 0.2 && S.u < 3.4 && S.s < 2.5
     board.inTube = inTube
     if (inTube) {
       this.tube.active = true

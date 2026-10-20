@@ -61,7 +61,7 @@ export class Spray {
           vec2 c = gl_PointCoord * 2.0 - 1.0;
           float r = dot(c, c);
           if (r > 1.0) discard;
-          float soft = mix((1.0 - r) * (1.0 - r * 0.5), pow(1.0 - r, 2.5), vMist);
+          float soft = mix(pow(1.0 - r, 1.5), pow(1.0 - r, 2.5), vMist);
           float a = soft * vAlpha;
           float forward = pow(max(dot(vView, uSunDir), 0.0), 6.0);
           vec3 sun = uSunColor * uSunIntensity;
@@ -136,7 +136,7 @@ export class Spray {
       const t = this.life[i] / this.maxLife[i]
       const mist = this.data[o + 2]
       this.data[o] = this.size0[i] * (1 + (1 - t) * (mist > 0.5 ? 1.6 : 1.2))
-      this.data[o + 1] = Math.min(1, t * 2.5) * (mist > 0.5 ? 0.13 : 0.85)
+      this.data[o + 1] = Math.min(1, t * 2.5) * (mist > 0.5 ? 0.13 : 0.7)
       // Droplets that fall back into the sea are gone.
       if (this.vel[o + 1] < 0 && (i & 3) === 0 && field && this.pos[o + 1] < field.heightAt(this.pos[o], this.pos[o + 2]) - 0.1) {
         this._kill(i)

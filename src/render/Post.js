@@ -14,7 +14,7 @@ const GradeShader = {
     uFlash: { value: 0 },
     uUnder: { value: 0 },
     uTube: { value: 0 },
-    uSat: { value: 1.08 },
+    uSat: { value: 1.12 },
     uTime: { value: 0 },
     uAspect: { value: 1 },
   },

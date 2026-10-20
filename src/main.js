@@ -175,7 +175,12 @@ function boot() {
   }
 
   const ui = { pause: $('pause'), fade: $('fade') }
-  const game = new Game({ field, board, hud, audio, effects, rig, surfer, trail, spray, ui })
+  // Physical feedback: pad rumble plus a brief bright flash.
+  const feel = (strength, ms, flash) => {
+    input.rumble(strength, ms)
+    post.uniforms.uFlash.value = Math.max(post.uniforms.uFlash.value, flash)
+  }
+  const game = new Game({ field, board, hud, audio, effects, rig, surfer, trail, spray, ui, feel })
 
   // ---- Menu wiring ----
   const menu = $('menu')
@@ -234,9 +239,11 @@ function boot() {
     $('resTotal').textContent = total.toFixed(2)
     $('resSub').textContent = free
       ? `Best wave of ${rides.length}`
-      : rides.length
-        ? `Best two of ${rides.length} wave${rides.length === 1 ? '' : 's'}, out of 20`
-        : 'No waves ridden. Paddle harder as the face lifts you.'
+      : rides.length > 1
+        ? `Best two of ${rides.length} waves, out of 20`
+        : rides.length
+          ? 'One wave scored. Two count, out of 20'
+          : 'No waves ridden. Paddle harder as the face lifts you.'
     const list = $('resWaves')
     list.innerHTML = ''
     const used = []
@@ -249,7 +256,8 @@ function boot() {
       }
       const desc = r.top ? r.top.name : r.completed ? 'Rode it in' : 'Cruised'
       li.innerHTML = `<span class="w-n">W${i + 1}</span><span class="w-d"></span><span class="w-s">${r.score.toFixed(2)}</span>`
-      li.querySelector('.w-d').textContent = desc + (r.tube > 0.4 ? ` · ${r.tube.toFixed(1)} s barrel` : '')
+      const barrel = r.tube > 0.4 && !/Barrel/.test(desc) ? ` · ${r.tube.toFixed(1)} s barrel` : ''
+      li.querySelector('.w-d').textContent = desc + barrel
       list.appendChild(li)
     })
     $('resBest').textContent = isBest ? (prev ? `New personal best, up from ${prev.total.toFixed(2)}` : 'First heat on the board') : ''

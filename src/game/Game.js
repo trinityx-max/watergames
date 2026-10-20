@@ -2,6 +2,7 @@
 // count, like a real contest) or free surf. Each wave goes lineup -> catch ->
 // ride -> scorecard -> fade back out to the lineup for the next set.
 
+import { Vector3 } from 'three'
 import { HEAT_SECONDS, WORLD, WAVE } from '../config.js'
 import { MODE } from '../physics/Board.js'
 import { RideScore } from './Scoring.js'
@@ -42,6 +43,7 @@ export class Game {
     this.side = 1
     this.lastHornDone = false
     this.message = null
+    this._v = new Vector3()
   }
 
   // ---------- Setup ----------
@@ -117,7 +119,10 @@ export class Game {
       if (this.autopilot && this.sub === 'ride' && !this._apDir) this.bot.dir = this.rideDir()
       this.bot.drive(board, dt)
     } else {
-      board.input.steer = input.steer
+      // While paddling the camera looks back at the swell, facing the rider:
+      // keep A/D meaning screen-left/right.
+      const facing = board.mode === MODE.PRONE && this.rig.lookBack > 0.5 ? -1 : 1
+      board.input.steer = input.steer * facing
       board.input.throttle = input.throttle
       board.input.brake = input.brake
       board.input.grab = input.grab
@@ -163,12 +168,14 @@ export class Game {
           this.effects.burst(board, 'land')
           this.audio.splash(0.6 + Math.min(1, -e.impact / 10))
           this.rig.addShake(0.35)
+          this.feel?.(0.35, 120, 0.04)
           this.ride?.onBoardEvent(e)
           break
         case 'wipeout':
           this.effects.burst(board, 'wipeout')
           this.audio.splash(1.6)
           this.rig.addShake(1.1)
+          if (this.state === 'play') this.feel?.(1, 450, 0.22)
           if (this.state === 'play' && this.ride) {
             const lost = this.ride.wipeout()
             this.hud.trick({ name: 'Wiped out', points: 0 }, true)
@@ -189,12 +196,14 @@ export class Game {
     const w = this.field.getWave(board.rideWaveId)
     const dir = w ? Math.sign(board.pos.x - w.xPeak) || this.side : this.side
     this.sub = 'ride'
+    this.hintSide = undefined
     this.ride = new RideScore((t) => this._onTrick(t), dir)
     this.passTimer = 0
   }
 
   _onTrick(t) {
     this.hud.trick(t)
+    if (t.big) this.feel?.(0.25, 90, 0.05)
     this.audio.chime(Math.min(9, t.combo - 1), t.big)
     if (/Snap|Re-entry|Cutback/.test(t.name)) {
       this.effects.burst(this.board, 'snap')
@@ -289,14 +298,26 @@ export class Game {
         hud.setPrompt('Next set', `about ${Math.ceil(this.nextSetTimer + 6)}s`)
       } else hud.setPrompt('')
       const dx = this.peak - board.pos.x
-      hud.setPocket(Math.abs(dx) < 4 ? 'On the peak' : `Peak ${Math.round(Math.abs(dx))} m ${dx > 0 ? 'right' : 'left'}`)
+      if (Math.abs(dx) < 4) hud.setPocket('On the peak')
+      else {
+        const p = this._v.set(this.peak, board.pos.y, board.pos.z).project(this.rig.camera)
+        hud.setPocket(p.x > 0 ? `Peak ${Math.round(Math.abs(dx))} m ▶` : `◀ Peak ${Math.round(Math.abs(dx))} m`)
+      }
       hud.setCombo(null)
     } else if (this.sub === 'ride') {
       const w = this.field.getWave(board.rideWaveId)
       const over = this._rideOver(S, w, dt)
       if (over) this._endRide(over)
       else {
-        hud.setPrompt(this.message ? this.message.text : '', this.message ? this.message.sub : '')
+        const r = this.ride
+        if (this.message) hud.setPrompt(this.message.text, this.message.sub)
+        else if (r && r.time < 2.4 && board.mode !== MODE.AIR) {
+          // Which screen side the open shoulder is on, judged once at take-off
+          // so the arrow doesn't flip as the camera swings round.
+          if (this.hintSide === undefined) this.hintSide = this._v.set(board.pos.x + r.rideDir * 10, board.pos.y, board.pos.z).project(this.rig.camera).x < 0 ? -1 : 1
+          const left = this.hintSide < 0
+          hud.setPrompt(left ? '◀ Down the line' : 'Down the line ▶', `Carve with ${left ? 'A' : 'D'}, stay ahead of the whitewater`)
+        } else hud.setPrompt('')
         if (board.inTube) hud.setPocket('In the barrel', 'tube')
         else if (S.broken > 0.25 && S.u > -5) hud.setPocket('Whitewater!', 'warn')
         else if (S.curl > 0.3 && S.u < 1.2 && S.hn > 0.75) hud.setPocket('Too high, the lip!', 'warn')

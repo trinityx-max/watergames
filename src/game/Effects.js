@@ -52,7 +52,7 @@ export class Effects {
           lx * side * out + board.vel.x * 0.35 - fx * R(),
           up,
           lz * side * out + board.vel.z * 0.35 - fz * R(),
-          0.12 + R() * 0.16 * (0.5 + carve),
+          0.05 + R() * 0.09 * (0.5 + carve),
           0.5 + R() * 0.6,
           R() < 0.25 ? 1 : 0,
           0.9,
@@ -98,7 +98,7 @@ export class Effects {
             sp.emit(x + (R() - 0.5), h + 0.2, zc + 3.2 + (R() - 0.5) * 1.5, (R() - 0.5) * 2.5, 2.5 + R() * 5, WAVE.speed * 0.6 + R() * 3, 0.35 + R() * 0.6, 0.8 + R() * 0.8, R() < 0.4 ? 1 : 0, 0.7, 0.9)
           } else {
             const p = this.lipPoint(w, x, 0.85 + R() * 0.15)
-            sp.emit(p[0], p[1], p[2], (R() - 0.5) * 0.8, -0.5 - R(), WAVE.speed * 0.8, 0.12 + R() * 0.12, 0.5 + R() * 0.4, 0, 0.3, 1)
+            sp.emit(p[0], p[1], p[2], (R() - 0.5) * 0.8, -0.5 - R(), WAVE.speed * 0.8, 0.05 + R() * 0.07, 0.5 + R() * 0.4, 0, 0.3, 1)
           }
         }
       }
@@ -145,7 +145,7 @@ export class Effects {
         const dirz = -fx * Math.cos(a) - fz * Math.sin(a)
         const side = -Math.sign(board.yawRate || 1)
         const s = 3 + R() * 5
-        sp.emit(p.x, p.y + 0.1, p.z, dirx * side * s, 2.5 + R() * 4.5, dirz * side * s, 0.15 + R() * 0.25, 0.7 + R() * 0.6, R() < 0.3 ? 1 : 0, 0.8, 1)
+        sp.emit(p.x, p.y + 0.1, p.z, dirx * side * s, 2.5 + R() * 4.5, dirz * side * s, 0.06 + R() * 0.14, 0.7 + R() * 0.6, R() < 0.3 ? 1 : 0, 0.8, 1)
       }
     }
   }

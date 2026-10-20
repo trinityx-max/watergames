@@ -50,6 +50,24 @@ export class Input {
     }
   }
 
+  // Gamepad rumble, where the browser and pad support it.
+  rumble(strength = 0.5, ms = 200) {
+    if (!this.usingPad || !navigator.getGamepads) return
+    let pads = []
+    try {
+      pads = navigator.getGamepads()
+    } catch {
+      return
+    }
+    for (const p of pads) {
+      const a = p && p.vibrationActuator
+      if (a && a.playEffect) {
+        a.playEffect('dual-rumble', { duration: ms, strongMagnitude: strength, weakMagnitude: strength * 0.6 }).catch(() => {})
+        return
+      }
+    }
+  }
+
   down(...codes) {
     return codes.some((c) => this.keys.has(c))
   }
@@ -70,7 +88,12 @@ export class Input {
     let brake = this.down('KeyS', 'ArrowDown') ? 1 : 0
     let grab = this.down('ShiftLeft', 'ShiftRight', 'KeyE')
 
-    const pads = navigator.getGamepads ? navigator.getGamepads() : []
+    let pads = []
+    try {
+      pads = navigator.getGamepads ? navigator.getGamepads() : []
+    } catch {
+      // Gamepads can be blocked by the embedding page's permissions policy.
+    }
     for (const p of pads) {
       if (!p || !p.connected) continue
       const ax = p.axes[0] || 0
