@@ -178,9 +178,11 @@ export class WaveField {
     return out
   }
 
-  // Height of the underside of the lip at z, or Infinity when no lip is overhead.
+  // Height of the underside of the lip at z, or Infinity when no lip is
+  // overhead. `lipTop` is set to the crest height above that point.
   lipCeiling(x, z) {
     let ceil = Infinity
+    this.lipTop = -Infinity
     const L = this._lip || (this._lip = {})
     for (const w of this.waves) {
       if (w.bk < 0.05) continue
@@ -190,6 +192,7 @@ export class WaveField {
       if (q < -0.3 || q > 1) continue
       const phi = Math.asin(Math.min(1, Math.max(0, q)))
       ceil = Math.min(ceil, L.crestH - L.Ry * (1 - Math.cos(phi)))
+      this.lipTop = Math.max(this.lipTop, L.crestH + 0.4)
     }
     return ceil
   }

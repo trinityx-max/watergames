@@ -126,14 +126,18 @@ export class CameraRig {
       fov += tube * 6
     }
 
-    // Never aim the camera inside the curling lip: tuck under it for a barrel
-    // view when there is room, otherwise step out in front of it.
-    for (let i = 0; i < 16; i++) {
+    // Keep the camera out of the barrel unless the rider is in it: then tuck
+    // under the lip for the view down the tube. Otherwise step out in front.
+    const tuck = board.inTube && this.mode !== 'cinematic'
+    for (let i = 0; i < 24; i++) {
       const c = field.lipCeiling(t.x, t.z)
-      if (c === Infinity || t.y < c - 0.6) break
-      if (board.inTube && this.mode !== 'cinematic' && c - 0.6 > field.heightAt(t.x, t.z) + 0.6) {
-        t.y = c - 0.6
-        break
+      if (c === Infinity || t.y > field.lipTop) break
+      if (tuck) {
+        if (t.y < c - 0.6) break
+        if (c - 0.6 > field.heightAt(t.x, t.z) + 0.6) {
+          t.y = c - 0.6
+          break
+        }
       }
       t.z += 0.8
     }
@@ -147,9 +151,11 @@ export class CameraRig {
       this.look.lerp(l, smooth(lookRate, dt))
     }
     const ceil = field.lipCeiling(this.pos.x, this.pos.z)
-    if (ceil < Infinity && this.pos.y > ceil - 0.45) {
+    if (ceil < Infinity && this.pos.y > ceil - 0.45 && this.pos.y < field.lipTop) {
+      // Easing in toward the target crossed the lip sheet: clear it this frame.
       const floor = field.heightAt(this.pos.x, this.pos.z) + 0.5
-      if (ceil - 0.45 > floor) this.pos.y = ceil - 0.45
+      if (tuck && ceil - 0.45 > floor) this.pos.y = ceil - 0.45
+      else this.pos.y = field.lipTop
     }
     const surf = field.heightAt(this.pos.x, this.pos.z)
     const allowUnder = board.mode === MODE.WIPEOUT && this.mode !== 'cinematic'
